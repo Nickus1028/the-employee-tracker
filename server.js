@@ -4,6 +4,7 @@ const connection = require('./utils/connection');
 const getDepartments = require ('./utils/queryDB');
 
 let departmentNamesArr = [];
+let departmentArray = [];
 
 // Starter menu
 function startEmployeeTracker() {
@@ -113,6 +114,9 @@ function addDepartment() {
 
 function addRole () {
  
+  let departmentNamesArr = [];
+  let departmentArray = [];
+  
   getDepartments().then((rows) => {  
       let departmentArray = rows[0];          
       for (var i=0; i < departmentArray.length; i++) {
@@ -120,8 +124,6 @@ function addRole () {
         departmentNamesArr.push(department);
       };
   });
-
-
 
   inquirer.prompt([
     {
@@ -139,7 +141,30 @@ function addRole () {
         name: "department",
         message: "What department does the new role reside in? ",
         choices: departmentNamesArr
-    }]);
+    }])
+    .then((response) => {   
+      let departmentID;
+      console.log(departmentArray.length)
+      for (let i=0; i < departmentArray.length; i++) {
+        if (response.department === departmentArray[i].name) {
+          departmentID = departmentArray[i].id;
+          console.log(departmentID)
+          break;
+        };
+      };
+      connection.query('INSERT INTO roles SET ?',
+      {
+        title: response.roleTitle,
+        salary: response.salary,
+        department_id: departmentID
+      },
+      function(err, res) {
+        if (err) throw err;
+        console.log(response.roleTitle + ' added to roles!\n');
+        startEmployeeTracker();
+      });     
+    });
 };
+
 
  startEmployeeTracker();
