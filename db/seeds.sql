@@ -43,6 +43,6 @@ VALUES
 ('Summers', 'Scott', 10, NULL),
 ('Grey', 'Jean', 9, 17),
 ('McCoy', 'Hank', 9, 17),
-('Ororo', 'Munroe', 9, 17);
+('Munroe', 'Ororo', 9, 17);
 
 

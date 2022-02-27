@@ -1,6 +1,9 @@
 const inquirer = require('inquirer');
 const cTable = require('console.table');
+const connection = require('./utils/connection');
 
+
+// Starter menu
 function startEmployeeTracker() {
     console.log("---Welcome To The Employee Tracker Database---");
     inquirer
@@ -50,11 +53,41 @@ function startEmployeeTracker() {
                 break;
             
             case "Exit":
-                console.log("Bye!");
+                console.log("Leaving the Employee Tracker Database!");
                 connection.end();
                 break
       }
     })
+};
+
+// Views all departments from our DB by quering departments
+function viewAllDepartments() {
+  const query = connection.query("SELECT * FROM departments", function (err, res) {
+      if (err) throw err
+      console.log("\n Departments in database \n");
+      console.table(res);
+      startEmployeeTracker();
+  });
+};
+
+// Views all roles from our DB by department id
+function viewAllRoles() {
+  const query = connection.query("SELECT roles.id, roles.title, roles.salary, departments.name as department FROM roles JOIN departments ON roles.department_id = departments.id", function (err, res) {
+      if (err) throw err
+      console.log("\n All Roles \n")
+      console.table(res);
+      startEmployeeTracker();
+  });
+};
+
+// View all employees from our DB
+function viewAllEmployees() {
+  const query = connection.query("SELECT e1.id, e1.first_name, e1.last_name, roles.title as role, departments.name AS department, roles.salary, Concat(e2.first_name, ' ', e2.last_name) AS manager FROM employees e1 LEFT JOIN roles ON e1.role_id = roles.id LEFT JOIN departments ON roles.department_id = departments.id LEFT JOIN employees e2 ON e2.id = e1.manager_id", function (err, res) {
+      if (err) throw err
+      console.log ("\n All Employees \n");
+      console.table(res);
+      startEmployeeTracker();
+  });
 };
 
  startEmployeeTracker();
