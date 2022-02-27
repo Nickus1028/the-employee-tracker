@@ -3,9 +3,6 @@ const cTable = require('console.table');
 const connection = require('./utils/connection');
 const getDepartments = require ('./utils/queryDB');
 
-let departmentNamesArr = [];
-let departmentArray = [];
-
 // Starter menu
 function startEmployeeTracker() {
     console.log("---Welcome To The Employee Tracker Database---");
@@ -93,6 +90,7 @@ function viewAllEmployees() {
   });
 };
 
+// Add a department to our DB
 function addDepartment() {
   inquirer.prompt ({
       type: 'input',
@@ -112,20 +110,20 @@ function addDepartment() {
   });
 };
 
+// Add a role to our DB
 function addRole () {
  
   let departmentNamesArr = [];
   let departmentArray = [];
-  
+
   getDepartments().then((rows) => {  
       let departmentArray = rows[0];          
       for (var i=0; i < departmentArray.length; i++) {
         let department = departmentArray[i].name;
         departmentNamesArr.push(department);
       };
-  });
-
-  inquirer.prompt([
+      
+    inquirer.prompt([
     {
         type: "input",
         name: "roleTitle",
@@ -164,6 +162,7 @@ function addRole () {
         startEmployeeTracker();
       });     
     });
+  });
 };
 
 
