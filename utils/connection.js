@@ -7,11 +7,10 @@ const connection = mysql.createConnection({
     user: 'ODBC',
     password: '',
     database: 'employee_tracker',
-  });
+});
 
-  connection.connect(function(err) {
-      if (err) throw err;
-      console.log("Connected to database.")
-  });
+connection.connect(function(err) {
+    if (err) throw err;
+});
 
-  module.exports = connection;
+module.exports = connection;

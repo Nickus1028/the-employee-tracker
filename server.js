@@ -1,7 +1,9 @@
 const inquirer = require('inquirer');
 const cTable = require('console.table');
 const connection = require('./utils/connection');
+const getDepartments = require ('./utils/queryDB');
 
+let departmentNamesArr = [];
 
 // Starter menu
 function startEmployeeTracker() {
@@ -57,7 +59,7 @@ function startEmployeeTracker() {
                 connection.end();
                 break
       }
-    })
+    });
 };
 
 // Views all departments from our DB by quering departments
@@ -88,6 +90,56 @@ function viewAllEmployees() {
       console.table(res);
       startEmployeeTracker();
   });
+};
+
+function addDepartment() {
+  inquirer.prompt ({
+      type: 'input',
+      name: 'department',
+      message: 'What is the name of the new department?'
+  }).then(function(input) {
+      const query = connection.query(
+        'INSERT INTO departments SET ?',
+        {
+          name: input.department
+        },
+        function(err, res) {
+          if (err) throw err;
+          console.log('Department added successfully!\n');
+          startEmployeeTracker();
+        });
+  });
+};
+
+function addRole () {
+ 
+  getDepartments().then((rows) => {  
+      let departmentArray = rows[0];          
+      for (var i=0; i < departmentArray.length; i++) {
+        let department = departmentArray[i].name;
+        departmentNamesArr.push(department);
+      };
+  });
+
+
+
+  inquirer.prompt([
+    {
+        type: "input",
+        name: "roleTitle",
+        message: "What is the new role title? "
+    },
+    {
+        type: "number",
+        name: "salary",
+        message: "What is the new role salary? "
+    },
+    {   
+        type: "list",
+        name: "department",
+        message: "What department does the new role reside in? ",
+        choices: departmentNamesArr
+    }]);
 };
 
  startEmployeeTracker();
