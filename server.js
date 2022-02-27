@@ -1,10 +1,8 @@
 const inquirer = require('inquirer');
 const cTable = require('console.table');
 
-const connection = require('./db/database');
-const { getDepartments, getEmployees, getRoles } = require('./db/query.js')
-
 function startEmployeeTracker() {
+    console.log("---Welcome To The Employee Tracker Database---");
     inquirer
     .prompt({
       type: "list",
