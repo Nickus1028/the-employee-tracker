@@ -4,4 +4,15 @@ function getDepartments() {
     return connection.promise().query("SELECT * FROM departments")
 };
 
-module.exports = getDepartments;
+function getRoles() {
+    return connection.promise().query("SELECT * FROM roles")
+};
+  
+function getEmployees () {
+    return connection.promise().query("SELECT * FROM employees")
+};
+
+module.exports = {
+    getDepartments,
+    getRoles,
+    getEmployees }

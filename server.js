@@ -1,7 +1,7 @@
 const inquirer = require('inquirer');
 const cTable = require('console.table');
 const connection = require('./utils/connection');
-const getDepartments = require ('./utils/queryDB');
+const {getDepartments, getRoles, getEmployees} = require ('./utils/queryDB');
 
 // Starter menu
 function startEmployeeTracker() {
@@ -33,8 +33,8 @@ function startEmployeeTracker() {
               break;
   
             case "View all employees":
-               viewAllEmployees();
-               break;
+              viewAllEmployees();
+              break;
   
             case "Add a department":
               addDepartment();
@@ -45,17 +45,17 @@ function startEmployeeTracker() {
               break;
   
             case "Add an employee":
-                addEmployee();
-                break;
+              addEmployee();
+              break;
   
             case "Update an employee role":
-                updateEmployeeRole();
-                break;
+              updateEmployeeRole();
+              break;
             
             case "Exit":
-                console.log("Leaving the Employee Tracker Database!");
-                connection.end();
-                break
+              console.log("Leaving the Employee Tracker Database!");
+              connection.end();
+              break;
       }
     });
 };
@@ -112,27 +112,27 @@ function addDepartment() {
 
 // Add a role to our DB
 function addRole () {
- 
   let departmentNamesArr = [];
-  let departmentArray = [];
-
+  
   getDepartments().then((rows) => {  
-      let departmentArray = rows[0];          
-      for (var i=0; i < departmentArray.length; i++) {
-        let department = departmentArray[i].name;
-        departmentNamesArr.push(department);
-      };
+    
+    let departmentArray = rows[0];          
+    
+    for (var i=0; i < departmentArray.length; i++) {
+      let department = departmentArray[i].name;
+      departmentNamesArr.push(department);
+    };
       
     inquirer.prompt([
     {
         type: "input",
         name: "roleTitle",
-        message: "What is the new role title? "
+        message: "What is the new role's title? "
     },
     {
         type: "number",
         name: "salary",
-        message: "What is the new role salary? "
+        message: "What is the new role's salary? "
     },
     {   
         type: "list",
@@ -142,11 +142,9 @@ function addRole () {
     }])
     .then((response) => {   
       let departmentID;
-      console.log(departmentArray.length)
       for (let i=0; i < departmentArray.length; i++) {
         if (response.department === departmentArray[i].name) {
           departmentID = departmentArray[i].id;
-          console.log(departmentID)
           break;
         };
       };
@@ -160,10 +158,153 @@ function addRole () {
         if (err) throw err;
         console.log(response.roleTitle + ' added to roles!\n');
         startEmployeeTracker();
-      });     
+        });     
     });
   });
 };
 
+// Add employee to our DB 
+function addEmployee () {
+  getEmployees().then((employees) => {
+      let employeeNamesArr = []
+      let employeesArray = employees[0]
+      for (var i=0; i < employeesArray.length; i++) {
+        let employee = employeesArray[i].first_name + ' ' + employeesArray[i].last_name
+        employeeNamesArr.push(employee)
+      }
+      
+      getRoles()
+       .then((roles) => {
+        let roleTitlesArr = []
+        let rolesArray = roles[0]
+        for (var i=0; i < rolesArray.length; i++) {
+          let role = rolesArray[i].title
+          roleTitlesArr.push(role)
+        }
+          
+        inquirer.prompt ([
+          {
+            type: 'input',
+            name: 'firstName',
+            message: 'Enter the first name of the employee: '
+          },
+          {
+            type: 'input',
+            name:'lastName',
+            message: 'Enter the last name of the employee: '
+          },
+          {
+            type: 'list',
+            name: 'role',
+            message: 'Choose the role of the employee: ',
+            choices: roleTitlesArr
+          },
+          {
+            type: 'list',
+            name: 'manager',
+            message: 'Choose the manager of the employee: ',
+            choices: employeeNamesArr
+          }])
+          .then(function(input) {
+            let roleID
+            for (let i=0; i < rolesArray.length; i++) {
+              if (input.role === rolesArray[i].title) {
+              roleID = rolesArray[i].id;
+              break
+              }
+            }
 
- startEmployeeTracker();
+            let managerID
+            for (let i=0; i < employeesArray.length; i++) {
+              if (input.manager === employeesArray[i].first_name + ' ' + employeesArray[i].last_name) {
+                managerID = employeesArray[i].id;
+                break
+              }
+            }
+            
+            const query = connection.query( 'INSERT INTO Employees SET ?',
+              {
+                first_name: input.firstName,
+                last_name: input.lastName,
+                role_id: roleID,
+                manager_id: managerID
+              },
+              function(err, res) {
+                if (err) throw err;
+                console.log('Employee ' + input.firstName + ' ' + input.lastName + ' added!\n');
+                startEmployeeTracker();
+              });
+        });
+      });
+    });
+};
+
+// Update an existing employee role in our DB
+function updateEmployeeRole() {
+  getEmployees().then((employees) => {
+      let employeeNamesArr = []
+      let employeesArray = employees[0]
+      
+      for (var i=0; i < employeesArray.length; i++) {
+        let employee = employeesArray[i].first_name + ' ' + employeesArray[i].last_name
+        employeeNamesArr.push(employee)
+      }
+      
+      getRoles().then((roles) => {
+        let roleTitlesArr = []
+        let rolesArray = roles[0]
+        for (var i=0; i < rolesArray.length; i++) {
+          let role = rolesArray[i].title
+          roleTitlesArr.push(role)
+        }   
+
+      inquirer.prompt([
+           {
+             type: "list",
+             name: "employee",
+             message: "Which employee's role would you like to update?",
+             choices: employeeNamesArr
+           },
+           {
+             type: "list",
+             name: "role",
+             message: "What is their new role?",
+             choices: roleTitlesArr
+           }])
+         .then((input) => {
+          let roleID
+          for (let i=0; i < rolesArray.length; i++) {
+            if (input.role === rolesArray[i].title) {
+            roleID = rolesArray[i].id;
+            break
+            }
+          }
+
+          let employeeID
+          for (let i=0; i < employeesArray.length; i++) {
+            if (input.employee === employeesArray[i].first_name + ' ' + employeesArray[i].last_name) {
+              employeeID = employeesArray[i].id;
+              break
+            }
+          }
+      
+          connection.query('UPDATE employees SET ? WHERE ?', [
+                  {
+                    role_id: roleID
+                  },
+                  {
+                    id: employeeID
+                  }
+                ],
+                function(err, res) {
+                  if (err) throw err;
+                  console.log('Role updated!\n');
+                  startEmployeeTracker();
+                }
+            );
+          });
+        });
+    });
+};
+
+startEmployeeTracker();
